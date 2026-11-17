@@ -2,7 +2,7 @@ api_mgmt_rg   = "rg-sps-platform-sbox"
 api_mgmt_name = "sps-api-mgmt-sbox"
 
 apim_product = {
-  name                          = "cp-crime-caseingestion"
+  name                          = "cp-civil-caseingestion"
   subscription_required         = true
   subscriptions_limit           = 20
   approval_required             = false
@@ -18,10 +18,10 @@ apis = {
     # The source spec is modular ($ref to paths/ and schemas/). Terraform reads it with file(),
     # so terraform-infra.yaml bundles it into one file at this path before Terraform runs.
     openapi_spec_path = "../src/main/resources/openapi/openapi.yml"
-    display_name      = "Crime Case Ingestion Case API (cic)"
-    path              = "amp/cic"
+    display_name      = "Civil Case Ingestion Case API (cpci)"
+    path              = "amp/cpci"
     service_host      = "devamp01-appgw.dev.nl.cjscp"
-    service_path      = "/cic"
+    service_path      = "/cpci"
     revision          = "1"
     required_roles    = ["app.read"]
     # Pre-filled Authorization and Accept boxes in the portal's Try it (see apis.tf).

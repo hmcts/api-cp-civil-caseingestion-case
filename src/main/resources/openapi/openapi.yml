@@ -1,7 +1,7 @@
 openapi: 3.0.2
 servers:
   - description: API Common Platform Case Interface
-    url: https://hmcts.github.io/api-cp-crime-caseingestion-case/
+    url: https://hmcts.github.io/api-cp-civil-caseingestion-case/
 info:
   title: API Common Platform Case Interface
   description: API providing information on Common Platform Case Interface (CPCI)

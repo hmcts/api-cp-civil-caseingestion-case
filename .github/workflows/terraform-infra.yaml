@@ -94,5 +94,5 @@ jobs:
           state-store-use-entra-id-auth: true
           working-directory: infrastructure
           plan-only: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.overrideAction == 'plan') }}
-          product: cp-crime-caseingestion
+          product: cp-civil-caseingestion
           post-plan-to-pr: true

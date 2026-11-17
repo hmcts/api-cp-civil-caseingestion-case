@@ -8,7 +8,7 @@ submission status polling endpoint (`GET /submissions/{submissionId}`).
 ## Documentation
 
 The published OpenAPI documentation is available at
-[hmcts.github.io/api-cp-crime-caseingestion-case](https://hmcts.github.io/api-cp-crime-caseingestion-case/).
+[hmcts.github.io/api-cp-civil-caseingestion-case](https://hmcts.github.io/api-cp-civil-caseingestion-case/).
 
 Further documentation see the [API Template repository readme](https://github.com/hmcts/api-cp-template?tab=readme-ov-file#api-cp-template-repository).
 
