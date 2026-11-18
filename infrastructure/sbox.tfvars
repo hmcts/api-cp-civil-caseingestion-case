@@ -7,7 +7,9 @@ apim_product = {
   subscriptions_limit           = 20
   approval_required             = false
   published                     = true
-  product_access_control_groups = ["developers", "administrators", "guests"]
+  # APIM attaches the administrators group to every new product itself, so it is not listed here.
+  # Listing it makes the first apply fail ("already exists") and needs an import on every rebuild.
+  product_access_control_groups = ["developers", "guests"]
 }
 
 entra_tenant_id = "d44f885c-4fac-47bf-afde-d7d861ec4d7b"
