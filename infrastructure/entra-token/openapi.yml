@@ -10,7 +10,7 @@ info:
        boxes. No subscription key is needed. Leave `X-Scope` empty for a Case Ingestion Case
        token.
     3. Send, and copy `access_token` from the response.
-    4. On the [Case Ingestion Case API](https://amp-portal.sandbox.api.hmcts.net/api-details#api=api-common-platform-case-interface),
+    4. On the [Case Ingestion Case API](https://amp-portal.sandbox.api.hmcts.net/api-details#api=api-common-platform-case-interface-v1),
        select **Try it** and add the header `Authorization: Bearer <access_token>`.
 
     Your secret goes straight to Entra and is not logged. Outside the portal, call the

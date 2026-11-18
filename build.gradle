@@ -38,10 +38,16 @@ java {
   targetCompatibility = javaVersion
 }
 
+// One folder per major API version: src/main/resources/openapi/v1, v2, ...
+// Each generates into its own Java package (uk.gov.hmcts.cp.openapi.v1.api / .v1.model), so a
+// service can implement several versions side by side from this one package.
+def openApiRoot = file("src/main/resources/openapi")
+def apiVersions = (openApiRoot.listFiles()?.findAll { it.isDirectory() && it.name ==~ /v\d+/ }*.name ?: []).sort()
+
 sourceSets {
   main {
     java {
-      srcDir "$buildDir/generated/src/main/java"
+      apiVersions.each { v -> srcDir "$buildDir/generated/${v}/src/main/java" }
     }
   }
 }
@@ -175,44 +181,41 @@ jar {
   }
 }
 
-def inputSpecFile = file("src/main/resources/openapi/openapi.yml")
-
-tasks.named("openApiGenerate") {
-  inputs.file(inputSpecFile)
-  // paths/ and schemas/ only exist in the modular source layout — track them as inputs
-  // for change-detection in dev, but tolerate absence (CI feeds a single bundled file).
-  ['paths', 'schemas'].each { sub ->
-    def d = file("src/main/resources/openapi/${sub}")
-    if (d.exists()) {
-      inputs.dir(d)
-    }
+def openApiGenerateVersions = apiVersions.collect { v ->
+  tasks.register("openApiGenerate${v.capitalize()}", org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+    def versionDir = new File(openApiRoot, v)
+    // The folder holds openapi.yml plus paths/ and schemas/ in the modular source layout, or a
+    // single bundled openapi.yml in CI. Tracking the folder covers both.
+    inputs.dir(versionDir)
+    generatorName = "spring"
+    inputSpec = new File(versionDir, "openapi.yml").absolutePath
+    outputDir = layout.buildDirectory.dir("generated/${v}").get().asFile.absolutePath
+    apiPackage = "uk.gov.hmcts.cp.openapi.${v}.api"
+    modelPackage = "uk.gov.hmcts.cp.openapi.${v}.model"
+    generateModelTests = true
+    generateApiTests = true
+    cleanupOutput = true
+    configOptions = [
+            validateSpec                  : "true",
+            dateLibrary                   : "java8",
+            interfaceOnly                 : "true",
+            hideGenerationTimestamp       : "true",
+            useJakartaEe                  : "true",
+            useBeanValidation             : "true",
+            useTags                       : "true",
+            useSpringBoot3                : "true",
+            implicitHeaders               : "false",
+            performBeanValidation         : "true",
+            additionalModelTypeAnnotations: "@lombok.NoArgsConstructor;@lombok.Builder",
+            serializableModel             : "true",
+            openApiNullable               : "false"
+    ]
   }
 }
 
-openApiGenerate {
-  generatorName = "spring"
-  inputSpec = inputSpecFile.absolutePath
-  outputDir = layout.buildDirectory.dir("generated").get().asFile.absolutePath
-  apiPackage = "uk.gov.hmcts.cp.openapi.api"
-  modelPackage = "uk.gov.hmcts.cp.openapi.model"
-  generateModelTests = true
-  generateApiTests = true
-  cleanupOutput = true
-  configOptions = [
-          validateSpec                  : "true",
-          dateLibrary                   : "java8",
-          interfaceOnly                 : "true",
-          hideGenerationTimestamp       : "true",
-          useJakartaEe                  : "true",
-          useBeanValidation             : "true",
-          useTags                       : "true",
-          useSpringBoot3                : "true",
-          implicitHeaders               : "false",
-          performBeanValidation         : "true",
-          additionalModelTypeAnnotations: "@lombok.NoArgsConstructor;@lombok.Builder",
-          serializableModel             : "true",
-          openApiNullable               : "false"
-  ]
+tasks.register("openApiGenerateAll") {
+  description = "Generates the Spring interfaces and models for every API version folder."
+  dependsOn openApiGenerateVersions
 }
 
 tasks.named('compileJava') {
@@ -231,21 +234,21 @@ tasks.register('downloadFormatter') {
 }
 spotless {
   java {
-    target 'build/generated/src/main/**/*.java'
+    target 'build/generated/*/src/main/**/*.java'
     removeUnusedImports()
     eclipse().configFile(formatterPath)
   }
 }
 
 tasks.named('spotlessApply') {
-  dependsOn tasks.named('openApiGenerate'), tasks.named('downloadFormatter')
+  dependsOn tasks.named('openApiGenerateAll'), tasks.named('downloadFormatter')
 }
 tasks.named('spotlessJava') {
-  dependsOn tasks.named('openApiGenerate'), tasks.named('downloadFormatter')
+  dependsOn tasks.named('openApiGenerateAll'), tasks.named('downloadFormatter')
 }
 
 tasks.withType(Checkstyle).configureEach {
-  def generatedDir = file("${layout.buildDirectory.get().asFile.absolutePath}/generated/src/main/java").canonicalPath
+  def generatedDir = file("${layout.buildDirectory.get().asFile.absolutePath}/generated").canonicalPath
   source = source.filter { file ->
     !file.canonicalPath.startsWith(generatedDir)
   }

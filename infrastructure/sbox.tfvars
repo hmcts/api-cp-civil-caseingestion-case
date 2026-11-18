@@ -15,17 +15,22 @@ apim_product = {
 entra_tenant_id = "d44f885c-4fac-47bf-afde-d7d861ec4d7b"
 entra_client_id = "6474e0e1-d2b3-4383-a7d0-5253c8dc9ff4"
 
+# One APIM API per major API version (openapi/v1, later openapi/v2), all in the same product, so
+# callers keep one subscription key across versions. Public URL: amp/cpci/v1/...; the service
+# serves the same version under /v1 behind the /cpci route.
 apis = {
-  case = {
+  v1 = {
     # The source spec is modular ($ref to paths/ and schemas/). Terraform reads it with file(),
-    # so terraform-infra.yaml bundles it into one file at this path before Terraform runs.
-    openapi_spec_path = "../src/main/resources/openapi/openapi.yml"
-    display_name      = "Civil Case Ingestion Case API (cpci)"
-    path              = "amp/cpci"
-    service_host      = "devamp01-appgw.dev.nl.cjscp"
-    service_path      = "/cpci"
-    revision          = "1"
-    required_roles    = ["app.read"]
+    # so terraform-infra.yaml bundles each version folder in place before Terraform runs.
+    openapi_spec_path = "../src/main/resources/openapi/v1/openapi.yml"
+    # Explicit, because every version shares the spec's info.title.
+    name           = "api-common-platform-case-interface-v1"
+    display_name   = "Civil Case Ingestion Case API (cpci) v1"
+    path           = "amp/cpci/v1"
+    service_host   = "devamp01-appgw.dev.nl.cjscp"
+    service_path   = "/cpci/v1"
+    revision       = "1"
+    required_roles = ["app.read"]
     # Pre-filled Authorization and Accept boxes in the portal's Try it (see apis.tf).
     try_it_auth_headers = true
   }
