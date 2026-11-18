@@ -44,12 +44,20 @@ jobs:
         with:
           enablement: true
 
-      - name: Bundle modular OpenAPI spec and assemble site
+      - name: Bundle every API version's spec and assemble site
         run: |
           mkdir -p _site
           npm install -g @redocly/cli@latest
-          redocly bundle "${FILE_PATH_OPENAPI}/openapi.yml" -o _site/openapi-spec.yml
-          cat > _site/index.html <<'HTML'
+          # One page per site, one spec per API version: _site/v1/openapi-spec.yml, _site/v2/...
+          # The Swagger UI version picker lists the newest version first.
+          urls=""
+          for dir in $(ls -d ${FILE_PATH_OPENAPI}/v*/ | sort -V -r); do
+            v=$(basename "$dir")
+            mkdir -p "_site/$v"
+            redocly bundle "$dir/openapi.yml" -o "_site/$v/openapi-spec.yml"
+            urls="${urls}{url: \"$v/openapi-spec.yml\", name: \"$v\"},"
+          done
+          cat > _site/index.html <<HTML
           <!DOCTYPE html>
           <html lang="en">
             <head>
@@ -61,12 +69,15 @@ jobs:
             <body>
               <div id="swagger-ui"></div>
               <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.18.2/swagger-ui-bundle.js"></script>
+              <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.18.2/swagger-ui-standalone-preset.js"></script>
               <script>
                 window.onload = () => {
                   window.ui = SwaggerUIBundle({
-                    url: "openapi-spec.yml",
+                    urls: [${urls}],
                     dom_id: "#swagger-ui",
                     deepLinking: true,
+                    presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+                    layout: "StandaloneLayout",
                     tryItOutEnabled: false,
                     supportedSubmitMethods: [],
                   });

@@ -71,13 +71,13 @@ jobs:
         with:
           node-version: '22'
 
-      # apis.tf reads the spec with yamldecode(file(...)), which cannot follow the $refs into
-      # paths/ and schemas/. Bundle it into one file at the path sbox.tfvars points to.
-      - name: Bundle modular OpenAPI spec into a single self-contained file
+      # apis.tf reads each spec with yamldecode(file(...)), which cannot follow the $refs into
+      # paths/ and schemas/. Bundle every version folder's spec in place (v1/openapi.yml, ...),
+      # at the paths sbox.tfvars points to.
+      - name: Bundle the modular spec of every API version
         run: |
           npm install -g @redocly/cli@latest
-          redocly bundle ${FILE_PATH_OPENAPI}/openapi.yml -o /tmp/bundled.yml
-          mv /tmp/bundled.yml ${FILE_PATH_OPENAPI}/openapi.yml
+          bash .github/scripts/bundle-openapi-versions.sh
 
       - name: Terraform Deploy
         uses: hmcts/cnp-githubactions-library/terraform-deploy-openid@main

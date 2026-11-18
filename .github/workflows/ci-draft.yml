@@ -41,7 +41,7 @@ jobs:
       id-token: write
       attestations: write
     outputs:
-      upload_artifact_name: ${{ steps.update_spec.outputs.upload_artifact_name }}
+      upload_artifact_name: openapi-spec-${{ needs.Artefact-Version.outputs.artefact_version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -51,20 +51,27 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Bundle modular OpenAPI spec into a single self-contained file
+      - name: Bundle and version the spec in every API version folder
+        env:
+          ARTEFACT_VERSION: ${{ needs.Artefact-Version.outputs.artefact_version }}
+          API_NAME: ${{ github.event.repository.name }}
         run: |
           npm install -g @redocly/cli@latest
-          redocly bundle ${FILE_PATH_OPENAPI}/openapi.yml -o /tmp/bundled.yml
-          rm -rf ${FILE_PATH_OPENAPI}/paths ${FILE_PATH_OPENAPI}/schemas
-          mv /tmp/bundled.yml ${FILE_PATH_OPENAPI}/openapi.yml
+          bash .github/scripts/bundle-openapi-versions.sh "$ARTEFACT_VERSION" "$API_NAME"
 
-      - name: Update OpenAPI Spec Version
-        id: update_spec
-        uses: hmcts/update-openapi-version@main
+      # Replaces hmcts/update-openapi-version, which handles a single spec file per workflow.
+      - name: Upload the versioned specs
+        id: upload_spec
+        uses: actions/upload-artifact@v4
         with:
-          openapi_path: ${{ env.FILE_PATH_OPENAPI }}
-          api_name: ${{ github.event.repository.name }}
-          api_version: ${{ needs.Artefact-Version.outputs.artefact_version }}
+          name: openapi-spec-${{ needs.Artefact-Version.outputs.artefact_version }}
+          path: ${{ env.FILE_PATH_OPENAPI }}
+
+      - name: Attest the versioned specs
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: openapi-spec-${{ needs.Artefact-Version.outputs.artefact_version }}
+          subject-digest: sha256:${{ steps.upload_spec.outputs.artifact-digest }}
 
   Test:
     name: Test - Java ${{ matrix.java }}
