@@ -208,7 +208,11 @@ def openApiGenerateVersions = apiVersions.collect { v ->
             performBeanValidation         : "true",
             additionalModelTypeAnnotations: "@lombok.NoArgsConstructor;@lombok.Builder",
             serializableModel             : "true",
-            openApiNullable               : "false"
+            openApiNullable               : "false",
+            // The generator also writes an EnumConverterConfiguration class. Its default package is the
+            // same for every version, which makes a duplicate class once there are two versions. It stays
+            // outside uk.gov.hmcts.cp so services don't component-scan it, as before.
+            configPackage                 : "org.openapitools.configuration.${v}".toString()
     ]
   }
 }

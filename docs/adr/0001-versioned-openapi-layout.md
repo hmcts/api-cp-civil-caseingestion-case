@@ -44,6 +44,11 @@ The repo was created from `api-hmcts-crime-template`, which has a single unversi
   `hmcts/update-openapi-version`. If the template team adopts versioning, this repo should move back to
   the shared mechanism.
 - Breaking change for existing callers of the unversioned URLs (only internal testing at the time).
+- Each version's generator support class (`EnumConverterConfiguration`) goes in its own package,
+  `org.openapitools.configuration.v<N>`; with the default package, two versions don't compile (found when
+  v2 was added, 2026-11-19).
+- Each version's request media types carry its major version (`...cpci-other-cases.v2+json` for v2), so a
+  body meant for one version is rejected with 415 by the other.
 
 ## Alternatives considered
 
