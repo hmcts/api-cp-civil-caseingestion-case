@@ -1,6 +1,0 @@
-type: string
-description: Identifies the language to be used, values E or W (English or Welsh)
-enum:
-- E
-- W
-default: E
