@@ -15,7 +15,7 @@ apim_product = {
 entra_tenant_id = "d44f885c-4fac-47bf-afde-d7d861ec4d7b"
 entra_client_id = "6474e0e1-d2b3-4383-a7d0-5253c8dc9ff4"
 
-# One APIM API per major API version (openapi/v1, openapi/v2), all in the same product, so
+# One APIM API per major API version (openapi/v1, then v2, ...), all in the same product, so
 # callers keep one subscription key across versions. Public URL: amp/cpci/v<N>/...; the service
 # serves the same version under /v<N> behind the /cpci route.
 apis = {
@@ -32,18 +32,6 @@ apis = {
     revision       = "1"
     required_roles = ["app.read"]
     # Pre-filled Authorization and Accept boxes in the portal's Try it (see apis.tf).
-    try_it_auth_headers = true
-  }
-  # Same settings as v1 apart from the version: its own spec folder, APIM API and service prefix.
-  v2 = {
-    openapi_spec_path   = "../src/main/resources/openapi/v2/openapi.yml"
-    name                = "api-common-platform-case-interface-v2"
-    display_name        = "Civil Case Ingestion Case API (cpci) v2"
-    path                = "amp/cpci/v2"
-    service_host        = "devamp01-appgw.dev.nl.cjscp"
-    service_path        = "/cpci/v2"
-    revision            = "1"
-    required_roles      = ["app.read"]
     try_it_auth_headers = true
   }
 }
