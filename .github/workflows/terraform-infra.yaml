@@ -1,7 +1,7 @@
 name: Infrastructure
 
 # Registers the Case Ingestion Case API in APIM: sandbox (infrastructure/sbox.tfvars, backend dev)
-# and demo (infrastructure/demo.tfvars, backend SIT). Pull requests get a plan posted as a comment;
+# demo (infrastructure/demo.tfvars) and preview (infrastructure/preview.tfvars, backend SIT; demo does not connect to CP). Pull requests get a plan posted as a comment;
 # pushes to main apply.
 
 on:
@@ -132,6 +132,47 @@ jobs:
           azure-subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID_DEMO }}
           state-store-resource-group: rg-sps-platform-demo
           state-store-account-name: spsapimapidemostate
+          state-store-container-name: terraform-state
+          state-store-use-entra-id-auth: true
+          working-directory: infrastructure
+          plan-only: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.overrideAction == 'plan') }}
+          product: cp-civil-caseingestion
+          post-plan-to-pr: true
+
+  # Same steps as terraform-sbox, for APIM preview (SIT backend; demo does not connect to CP). Federated in azure-github-federation-config #122.
+  terraform-preview:
+    name: Terraform preview
+    needs: [ precheck ]
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.overrideAction == 'plan' || github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # apis.tf reads each spec with yamldecode(file(...)), which cannot follow the $refs into
+      # paths/ and schemas/. Bundle every version folder's spec in place (v1/openapi.yml, ...),
+      # at the paths preview.tfvars points to.
+      - name: Bundle the modular spec of every API version
+        run: |
+          npm install -g @redocly/cli@latest
+          bash .github/scripts/bundle-openapi-versions.sh
+
+      - name: Terraform Deploy
+        uses: hmcts/cnp-githubactions-library/terraform-deploy-openid@main
+        with:
+          environment: preview
+          subscription: ${{ vars.AZURE_SUBSCRIPTION_PREVIEW }}
+          aks-subscription: ${{ vars.AZURE_SUBSCRIPTION_PREVIEW }}
+          storage-account: ${{ vars.TFSTATE_STORAGE_ACCOUNT_NONPROD }}
+          azure-client-id: ${{ vars.AZURE_CLIENT_ID_PREVIEW }}
+          azure-subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID_PREVIEW }}
+          state-store-resource-group: rg-sps-platform-preview
+          state-store-account-name: spsapimapipreviewstate
           state-store-container-name: terraform-state
           state-store-use-entra-id-auth: true
           working-directory: infrastructure
