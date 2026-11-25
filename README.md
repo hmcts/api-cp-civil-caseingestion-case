@@ -22,6 +22,18 @@ there, give its request media types the new version (`...cpci-other-cases.v2+jso
 folder it finds, and CI bundles, versions and publishes them together in one package. See
 [ADR 0001](docs/adr/0001-versioned-openapi-layout.md).
 
+## Claude Code skills
+
+Two project skills live in `.claude/skills/`. Claude Code loads them when you work in this repo:
+
+| Skill | Use it to |
+|---|---|
+| [`deploy-api`](.claude/skills/deploy-api/SKILL.md) | Deploy the API and its service to **dev** (APIM sandbox) or **SIT** (APIM preview): Entra, federation, APIM Terraform, releases, `cp-vp-aks-deploy`, pipelines 434 and 550, the CJSCPPUID mapping and the smoke test |
+| [`add-api-version`](.claude/skills/add-api-version/SKILL.md) | Add (or retire) a major version (v2, v3, ...) beside the existing ones |
+
+The full story behind both, with every PR, is the
+[CPCI new API runbook](https://hmcts.atlassian.net/wiki/spaces/DATAIN/pages/391775615/CPCI-new-API-runbook).
+
 ## Documentation
 
 The published OpenAPI documentation is available at
