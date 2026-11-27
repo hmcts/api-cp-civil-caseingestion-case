@@ -133,7 +133,7 @@ against every environment, including prp, prd and mpd, and apply other teams' dr
 | `tfversion` | default (`1.13.3`) |
 | `overrideAction` | `apply` |
 | `targetResources` | `azurerm_key_vault_secret.cjscppuid_mapping["<caller client id>"]` |
-| `planEnvironments` | one line: `[{"platform": "nonlive", "environments": ["sit"]}]`. Multi-line YAML is rejected |
+| `planEnvironments` | one line, box cleared first: `[{platform: nonlive, environments: [sit]}]`. Multi-line or leftovers give "Mapping values are not allowed" / "did not find expected ',' or ']'" |
 
 **Before approving:**
 1. Stage **Terraform Plan (nonlive)** has only the job **Terraform plan <env>**.

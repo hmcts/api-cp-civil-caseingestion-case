@@ -1,6 +1,12 @@
 api_mgmt_rg   = "rg-sps-platform-preview"
 api_mgmt_name = "sps-api-mgmt-preview"
 
+# Consumer subscriptions (subscriptions.tf, as in courtschedule): each consumer gets its own
+# API-scoped APIM subscription, owned by the shared 'amp-subscriptions' user, and its key is
+# stored in this Key Vault as amp-apim-sub-preview-<consumer>-<api>-primary-key.
+subscription_key_vault_name = "kvspsplatformpreview"
+create_subscription_user    = true
+
 apim_product = {
   name                  = "cp-civil-caseingestion"
   subscription_required = true
@@ -29,6 +35,7 @@ apis = {
     revision            = "1"
     required_roles      = ["app.read"]
     try_it_auth_headers = true
+    consumers           = ["amp-enforcement-external-client"]
   }
 }
 
