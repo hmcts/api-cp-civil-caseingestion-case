@@ -11,17 +11,17 @@ apim_product = {
   product_access_control_groups = ["developers", "guests"]
 }
 
-# Preview uses external-entra-id's stg tenant and its own amp-api-caseingestion app there
-# (external-entra-id #66), not the sbox one.
+# Preview uses external-entra-id's stg tenant and its amp-api-cpci app there
+# (external-entra-id #66, renamed from amp-api-caseingestion in #70), not the sbox one.
 entra_tenant_id = "db827888-77df-4707-b3d9-24a3dfe32889"
-entra_client_id = "a246e00b-875f-4782-ad03-d92c355ff33a"
+entra_client_id = "6ce2737c-86bc-4e5c-8399-e3986c598879"
 
 # Preview fronts SIT (demo does not connect to CP): public URL https://sps-api-mgmt.preview.api.hmcts.net/amp/cpci/v1/...,
 # backend sitamp01, the SIT ingress of the service (ns-sit-amp-01).
 apis = {
   v1 = {
     openapi_spec_path   = "../src/main/resources/openapi/v1/openapi.yml"
-    name                = "api-common-platform-case-interface-v1"
+    name                = "api-common-platform-cpci-interface-v1"
     display_name        = "Civil Case Ingestion Case API (cpci) v1"
     path                = "amp/cpci/v1"
     service_host        = "sitamp01-appgw.sit.nl.cjscp"

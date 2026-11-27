@@ -29,8 +29,9 @@ https://hmcts.atlassian.net/wiki/spaces/DATAIN/pages/391775615/CPCI-new-API-runb
 | Public URL | `https://sandbox.api.hmcts.net/amp/cpci/v1` | `https://sps-api-mgmt.preview.api.hmcts.net/amp/cpci/v1` |
 | APIM instance / tfvars | `sps-api-mgmt-sbox` / `infrastructure/sbox.tfvars` | `sps-api-mgmt-preview` / `infrastructure/preview.tfvars` |
 | Entra tenant | sbox `d44f885c-4fac-47bf-afde-d7d861ec4d7b` | stg `db827888-77df-4707-b3d9-24a3dfe32889` |
-| API app `amp-api-caseingestion` (audience) | `6474e0e1-d2b3-4383-a7d0-5253c8dc9ff4` | `a246e00b-875f-4782-ad03-d92c355ff33a` |
+| API app (audience) | `amp-api-caseingestion` `6474e0e1-d2b3-4383-a7d0-5253c8dc9ff4` | `amp-api-cpci` `6ce2737c-86bc-4e5c-8399-e3986c598879` |
 | Test caller `amp-test-external-client` | `378a2954-c99b-4f8d-a35b-e0e70ecd3ea5` | `e5b947ce-a761-4373-a437-2e21447d4808` |
+| Enforcement caller `amp-enforcement-external-client` | – | `cfc4d419-ff0f-472e-859f-bce653826b84` (`app.read` on `amp-api-cpci` only) |
 | APIM backend (`service_host`) | `devamp01-appgw.dev.nl.cjscp` | `sitamp01-appgw.sit.nl.cjscp` |
 | Deploy branch / env file | `env/dev` / `services/service-cp-civil-caseingestion-case/dev.yml` | `env/sit` / `services/service-cp-civil-caseingestion-case/sit.yml` |
 | Cluster / namespace | `K8-DEV-CS01-CL01` / `ns-dev-amp-01` | `K8-SIT-CS01-CL01` / `ns-sit-amp-01` |
@@ -62,7 +63,8 @@ to become the SIT entry point later. Keep `demo.tfvars` in step with `preview.tf
 
 ## SIT checklist (after dev works)
 
-- [ ] 1. `external-entra-id`, `tenants/stg/config/apps.yaml`: the same API app, and grant `amp-test-external-client`.
+- [ ] 1. `external-entra-id`, `tenants/stg/config/apps.yaml`: the API app (in stg it's named `amp-api-cpci`, #70) and grant each caller.
+      Renaming an app there recreates it with a **new client id**, so update `preview.tfvars`, `demo.tfvars` and `sit.yml` after.
       The ids are in Key Vault `kvspsextidaat` (`entra-app-<name>-client-id`). People with only the nonlive
       directory can't read it, so ask Ashok Nannuri or platops.
 - [ ] 2. Federation: the same two subjects under **DTS AMp Preview** (and **DTS AMp Demo**). It takes about 5 minutes
@@ -165,7 +167,7 @@ submission's `prosecuting_authority`. Groups come through roles:
 export SIT_BASE=https://sps-api-mgmt.preview.api.hmcts.net/amp/cpci/v1      # no trailing slash
 RESP=$(curl -s -X POST "https://login.microsoftonline.com/db827888-77df-4707-b3d9-24a3dfe32889/oauth2/v2.0/token" \
   -d grant_type=client_credentials -d client_id="$SIT_CLIENT_ID" -d client_secret="$SIT_CLIENT_SECRET" \
-  -d scope="a246e00b-875f-4782-ad03-d92c355ff33a/.default")
+  -d scope="6ce2737c-86bc-4e5c-8399-e3986c598879/.default")
 export SIT_TOKEN=$(echo "$RESP" | python3 -c 'import sys,json;print(json.load(sys.stdin)["access_token"])')
 curl -s -w '\n%{http_code}\n' -H "Authorization: Bearer $SIT_TOKEN" -H "Ocp-Apim-Subscription-Key: $SIT_SUB_KEY" \
   -H "Accept: application/vnd.hmcts.cjs.cpci-submission-details+json" "$SIT_BASE/submissions/00000000-0000-0000-0000-000000000001"
